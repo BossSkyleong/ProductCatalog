@@ -15,7 +15,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.NeurogineProductCatalog">
         <activity
-            android:name=".MainActivity"
+            android:name=".UI.ProductActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
