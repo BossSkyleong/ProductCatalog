@@ -30,6 +30,13 @@ public class ProductActivity extends AppCompatActivity {
     ProductAdapter adapter;
     List<Product> productList = new ArrayList<>();
 
+    // Pagination variables
+    private static final int pageLimit = 20;
+    private int currentSkip = 0;
+    private boolean isLoading = false;
+    private boolean hasMoreProducts = true;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,25 +49,58 @@ public class ProductActivity extends AppCompatActivity {
         adapter = new ProductAdapter(productList);
         recyclerView.setAdapter(adapter);
 
+        //Load the first 20 products
         fetchProducts();
+
+        //Pagination when user scrolls near the bottom of the list
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                int visibleItemCount = LayoutManager.getChildCount();
+                int totalItemCount = LayoutManager.getItemCount();
+                int firstVisibleItemPosition = LayoutManager.findFirstVisibleItemPosition();
+
+                if (!isLoading && hasMoreProducts && (visibleItemCount + firstVisibleItemPosition >= totalItemCount)) {
+                    fetchProducts();
+                }
+            }
+        });
     }
 
     private void fetchProducts() {
+
+        if (isLoading || !hasMoreProducts) {
+            return;
+        }
+
+        isLoading = true;
         progressBar.setVisibility(View.VISIBLE);
-        ProductApi.Client.getProductApi().getProducts(0,20).enqueue(new Callback<ProductResponse>() {
+
+        ProductApi.Client.getProductApi().getProducts(currentSkip, pageLimit).enqueue(new Callback<ProductResponse>() {
             @Override
             public void onResponse(Call<ProductResponse> call, Response<ProductResponse> response) {
-                if(response.isSuccessful() && response.body() != null){
-                    productList.addAll(response.body().getProducts());
-                    adapter.notifyDataSetChanged();
+                if (response.isSuccessful() && response.body() != null) {
 
+                    List<Product> newProducts = response.body().getProducts();
+                    productList.addAll(newProducts);
+                    adapter.notifyDataSetChanged();
+                    currentSkip += newProducts.size();
+
+                    if (newProducts.size() < pageLimit) {
+                        hasMoreProducts = false;
+                    }
                 } else {
                     Toast.makeText(ProductActivity.this, "Failed to load products", Toast.LENGTH_SHORT).show();
                 }
-                    progressBar.setVisibility(View.GONE);
+                isLoading = false;
+                progressBar.setVisibility(View.GONE);
             }
+
             @Override
             public void onFailure(Call<ProductResponse> call, Throwable t) {
+                isLoading = false;
+
                 progressBar.setVisibility(View.GONE);
                 Toast.makeText(ProductActivity.this, "Error fetching products", Toast.LENGTH_SHORT).show();
             }
