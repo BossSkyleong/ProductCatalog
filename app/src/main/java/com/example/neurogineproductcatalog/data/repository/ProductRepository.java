@@ -1,6 +1,7 @@
 package com.example.neurogineproductcatalog.data.repository;
 
 import com.example.neurogineproductcatalog.data.api.ProductApi;
+import com.example.neurogineproductcatalog.data.model.Product;
 import com.example.neurogineproductcatalog.data.model.ProductResponse;
 
 import retrofit2.Call;
@@ -19,8 +20,8 @@ public class ProductRepository {
         call.enqueue(callback);
     }
 
-    public void getProductById(int id, Callback<ProductResponse> callback){
-        Call<ProductResponse> call = productApi.getProductById(id);
+    public void getProductById(int id, Callback<Product> callback){
+        Call<Product> call = productApi.getProductById(id);
         call.enqueue(callback);
     }
 
