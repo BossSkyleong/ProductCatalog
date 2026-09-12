@@ -1,5 +1,6 @@
 package com.example.neurogineproductcatalog.data.api;
 
+import com.example.neurogineproductcatalog.data.model.Product;
 import com.example.neurogineproductcatalog.data.model.ProductResponse;
 
 import retrofit2.Call;
@@ -19,7 +20,7 @@ public interface ProductApi {
     );
 
     @GET("products/{id}")
-    Call<ProductResponse> getProductById(
+    Call<Product> getProductById(
             @Path("id") int id
     );
 
