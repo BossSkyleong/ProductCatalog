@@ -1,5 +1,6 @@
 package com.example.neurogineproductcatalog.UI;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,6 +44,13 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ViewHold
         //Picasso loads the thumbnail URL into the imageView
         Picasso.get().load(product.getThumbnail()).into(holder.productImage);
 
+        // Tap a product row -> open detail screen with only the product id.
+        // The detail screen fetches full data (description, images) by id.
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(v.getContext(), ProductDetail.class);
+            intent.putExtra("productId", product.getId());
+            v.getContext().startActivity(intent);
+        });
     }
 
     @Override
