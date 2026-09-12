@@ -6,7 +6,9 @@ import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -14,6 +16,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.neurogineproductcatalog.R;
 import com.example.neurogineproductcatalog.data.api.ProductApi;
@@ -49,6 +52,13 @@ public class ProductActivity extends AppCompatActivity {
     private boolean isSearching = false;
     private ProductRepository productRepository;
 
+    //Pull-to-Refresh variables
+    private SwipeRefreshLayout swipeRefreshLayout;
+
+    //Retry Button variables
+    private Button retryButton;
+    private LinearLayout errorLayout;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,9 +72,16 @@ public class ProductActivity extends AppCompatActivity {
         adapter = new ProductAdapter(productList);
         recyclerView.setAdapter(adapter);
 
+        //search feature
         productRepository = new ProductRepository();
         searchInput = findViewById(R.id.searchInput);
 
+        //Pull-to-Refresh
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+
+        //Retry button when internet fail`
+        retryButton = findViewById(R.id.retryButton);
+        errorLayout = findViewById(R.id.errorLayout);
 
         //Load the first 20 products
         fetchProducts();
@@ -129,6 +146,30 @@ public class ProductActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
             }
         });
+
+        //pull-to-refresh onclick
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            productList.clear();
+            adapter.notifyDataSetChanged();
+
+            currentSkip = 0;
+            hasMoreProducts = true;
+            isLoading = false;
+
+            errorLayout.setVisibility(View.GONE);
+            fetchProducts();
+        });
+
+        //retry button onclick
+        retryButton.setOnClickListener(v -> {
+            errorLayout.setVisibility(View.GONE);
+
+            currentSkip = 0;
+            hasMoreProducts = true;
+            isLoading = false;
+
+            fetchProducts();
+        });
     }
 
     private void fetchProducts() {
@@ -145,6 +186,8 @@ public class ProductActivity extends AppCompatActivity {
             public void onResponse(Call<ProductResponse> call, Response<ProductResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
 
+                    errorLayout.setVisibility(View.GONE);
+
                     List<Product> newProducts = response.body().getProducts();
                     productList.addAll(newProducts);
                     adapter.notifyDataSetChanged();
@@ -154,18 +197,20 @@ public class ProductActivity extends AppCompatActivity {
                         hasMoreProducts = false;
                     }
                 } else {
-                    Toast.makeText(ProductActivity.this, "Failed to load products", Toast.LENGTH_SHORT).show();
+                    errorLayout.setVisibility(View.VISIBLE);
                 }
                 isLoading = false;
                 progressBar.setVisibility(View.GONE);
+                swipeRefreshLayout.setRefreshing(false);
             }
 
             @Override
             public void onFailure(Call<ProductResponse> call, Throwable t) {
                 isLoading = false;
-
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(ProductActivity.this, "Error fetching products", Toast.LENGTH_SHORT).show();
+                swipeRefreshLayout.setRefreshing(false);
+
+                errorLayout.setVisibility(View.VISIBLE);
             }
         });
     }
