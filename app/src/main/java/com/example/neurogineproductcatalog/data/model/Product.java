@@ -12,6 +12,8 @@ public class Product {
     private String thumbnail;
     private List<String> images;
 
+    private List<ProductReview> reviews;
+
     public int getId(){
         return id;
     }
@@ -35,8 +37,11 @@ public class Product {
     public String getThumbnail(){
         return thumbnail;
     }
-
     public List<String> getImages(){
         return images;
+    }
+
+    public List<ProductReview> getReviews(){
+        return reviews;
     }
 }
