@@ -59,6 +59,9 @@ public class ProductActivity extends AppCompatActivity {
     private Button retryButton;
     private LinearLayout errorLayout;
 
+    //Empty state variables
+    private LinearLayout emptyLayout;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +86,9 @@ public class ProductActivity extends AppCompatActivity {
         retryButton = findViewById(R.id.retryButton);
         errorLayout = findViewById(R.id.errorLayout);
 
+        //Empty state for product search
+        emptyLayout = findViewById(R.id.emptyLayout);
+
         //Load the first 20 products
         fetchProducts();
 
@@ -95,7 +101,9 @@ public class ProductActivity extends AppCompatActivity {
                 int totalItemCount = LayoutManager.getItemCount();
                 int firstVisibleItemPosition = LayoutManager.findFirstVisibleItemPosition();
 
-                if (!isLoading && hasMoreProducts && (visibleItemCount + firstVisibleItemPosition >= totalItemCount)) {
+                if (dy > 0 && !isLoading && hasMoreProducts && !isSearching
+                        && (visibleItemCount + firstVisibleItemPosition
+                        >= totalItemCount)) {
                     fetchProducts();
                 }
             }
@@ -187,6 +195,7 @@ public class ProductActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null) {
 
                     errorLayout.setVisibility(View.GONE);
+                    emptyLayout.setVisibility(View.GONE);
 
                     List<Product> newProducts = response.body().getProducts();
                     productList.addAll(newProducts);
@@ -231,8 +240,11 @@ public class ProductActivity extends AppCompatActivity {
                     productList.clear();
                     List<Product> results = response.body().getProducts();
 
-                    if (results != null) {
+                    if (results != null && !results.isEmpty()) {
                         productList.addAll(results);
+                        emptyLayout.setVisibility(View.GONE);
+                    } else {
+                        emptyLayout.setVisibility(View.VISIBLE);
                     }
                     adapter.notifyDataSetChanged();
                 } else {
