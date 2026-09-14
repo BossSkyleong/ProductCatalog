@@ -6,7 +6,7 @@ public class ProductReview {
     private String comment;
     private String date;
     private String reviewerName;
-    private String reviewrEmail;
+    private String reviewerEmail;
 
     public double getRating(){
         return rating;
@@ -24,4 +24,5 @@ public class ProductReview {
         return reviewerName;
     }
 
+    public String getReviewerEmail(){return reviewerEmail;}
 }
